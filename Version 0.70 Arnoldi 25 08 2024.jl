@@ -75,7 +75,7 @@ b[:,1] = rand(n)
 b[:,1] /= norm(b[:,1])
 
 # Arnoldi to Hessenberg
-H = arnoldihessenberg(X,b,k)'
+H = arnoldihessenberg(X,b,k)
 # Hessenberg to Eigenvalues (Call Robbie's function Here, in lieu:
 # Temporary function is used)
 Eig = eig_k(X,100)
