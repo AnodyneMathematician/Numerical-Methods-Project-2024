@@ -235,3 +235,25 @@ for i in x                                            #Set the n-size of matrix,
     push!(o,i)                                            #Fill the list with n-values for x-axis plotting
     push!(times, mean(t).time)                             #Fill the list with mean runtime of function for given n-size matrix
 end
+
+using LaTeXStrings
+using Plots
+
+plot(o,times, seriestype=:scatter,xaxis=:log10,yaxis=:log10,label="cpu time")
+xlabel!(L"$N\times N$ matrix")
+ylabel!("average time, nano seconds")
+complexity =@. times[2]*o^5/o[2]^5
+plot!(o,complexity,label="O(N^5)")
+title!("Performance of HessenFrancisQR (Dense matrix)")
+plot!(legend=:topleft)
+
+plot(o,htimes,xaxis=:log10,yaxis=:log10,seriestype=:scatter,label="HessenFrancis")
+hcomplexity =@. htimes[2]*o^6/o[2]^6
+plot!(o,hcomplexity,linecolor=:blue,label=L"O(N^6)")
+plot!(o,atimes, seriestype=:scatter,label="Arnoldi")
+acomplexity =@. atimes[2]*o^2/o[2]^2
+plot!(o,acomplexity,linecolor=:green,label=L"O(N^2)")
+xlabel!(L"$N\times N$ matrix")
+ylabel!("Average Time, nano seconds")
+title!("HessenFrancis vs Arnoldi (50% sparsity)")
+plot!(legend=:topleft)
