@@ -1,0 +1,67 @@
+using LinearAlgebra
+using Distributions
+using BenchmarkTools
+
+function randmatrix(n::Int64, m::Int64)
+    p = Float64(m)/Float64(n)^2 #Calculates success rate
+    M = rand(Bernoulli(p), n, n) #Creates n×n bernoulli matrix (0 and 1s)
+    N = rand(Uniform(-1,1), n, n) #Creates n×n matrix with values random between -1 and 1
+    for i = 1:n
+        for j = 1:n
+            if M[i,j] == 0
+                N[i,j] = 0.0 #If value in M is 0, corresponding value in N is changed to 0.0, otherwise, do nothing
+            end
+        end
+    end
+    return N
+end
+
+function normalizedrandomvector(n,k)
+    b = zeros(n,k)
+    b[:,1] = rand(n)
+    b[:,1] /= norm(b[:,1])
+    return b
+end
+
+function arnoldihessenberg(A,b,k)
+    #Initializing Matrices
+    H = zeros(k, k)
+    r = copy(b[:,1])
+    b[:,1] = r / norm(r)
+    # Arnoldi Iteration Process
+    for j = 1:k
+        if j > 1
+            b[:,j] = r / H[j,j-1]
+        end
+        r = A * b[:,j] 
+        # Performing Modified Gram Schmidt
+        for i=1:j
+            H[i,j] = dot(b[:,i], r)
+            r -= H[i,j] * b[:,i]
+        end
+
+        if j<k
+            H[j+1,j] = norm(r)
+        end
+    end
+    return H
+end
+
+function eig_k(H,k)
+    Hk = H[1:k,1:k]
+    L = eigen(Hk).values # Eigenvalue estimates at step k        
+    return L    
+end
+
+
+x=[2,4,8,16,32,64,80,100]
+o = []
+times = []
+for i in x                                            #Set the n-size of matrix, it goes up to 100x100 so change value of you want more or less
+    print("Processing ",i,"x",i)                          #Indicate progress of the function
+    a = randmatrix(i,i^2)                                   #Generate random matrix
+    b = normalizedrandomvector(i,i)
+    t = @benchmark eig_k(H,$i) setup=(H=arnoldihessenberg($a,$b,$i)) samples=10 evals=1
+    push!(o,i)                                            #Fill the list with n-values for x-axis plotting
+    push!(times, median(t).time)                             #Fill the list with mean runtime of function for given n-size matrix
+end
